@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Traffic Light Control</title>
+  <style>
+    body {
+      background-color: skyblue; font-family: Arial, sans-serif;
+      text-align: center;margin-top: 50px;
+    }
+    h2 {
+      color: darkblue;
+    }
+    .card {
+      background: white; padding: 20px;
+      border-radius: 15px; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);display: inline-block; 
+      min-width: 250px;
+    }
+    .led-control {margin: 15px 0;font-size: 18px;
+    }
+    input[type="checkbox"] {
+      transform: scale(1.3);
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🚦 Traffic Light Control Panel</h2>
+
+  <div class="card">
+    <div class="led-control">
+      <input type="checkbox" id="red"> Red LED
+    </div>
+    <div class="led-control">
+      <input type="checkbox" id="yellow"> Yellow LED
+    </div>
+    <div class="led-control">
+      <input type="checkbox" id="green"> Green LED
+    </div>
+  </div>
+
+<script>
+
+const base = "https://task-hd-a14c0-default-rtdb.firebaseio.com/leds";
+
+// ---- Function to set LED state ----
+async function setLED(color, val) {
+  try {
+    await fetch(`${base}/${color}/state.json`, {
+      method: "PUT",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(val)
+    });
+  } catch (e) {
+    console.error("Error setting LED:", e);
+  }
+}
+
+// ---- Checkbox event listeners ----
+document.getElementById("red").onchange    = e => setLED("red", e.target.checked ? 1 : 0);
+document.getElementById("yellow").onchange = e => setLED("yellow", e.target.checked ? 1 : 0);
+document.getElementById("green").onchange  = e => setLED("green", e.target.checked ? 1 : 0);
+
+// ---- Polling: sync UI with Firebase ----
+async function pollUI() {
+  for (const color of ["red","yellow","green"]) {
+    try {
+      const res = await fetch(`${base}/${color}/state.json`);
+      const state = await res.json();
+      document.getElementById(color).checked = !!state;
+    } catch (e) {
+      console.log("Error polling:", e);
+    }
+  }
+}
+
+// poll every second
+setInterval(pollUI, 1000);
+pollUI();
+</script>
+</body>
+</html>
