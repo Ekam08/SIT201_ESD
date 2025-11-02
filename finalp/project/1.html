@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SmartCart Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+<script>
+async function refreshBasket(){
+  const res = await fetch('/api/basket');
+  const data = await res.json();
+  const tbody = document.getElementById('basket-body');
+  tbody.innerHTML = '';
+  data.basket.forEach((item,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td><td>${item.name}</td><td>${item.price.toFixed(2)}</td><td>${item.uid}</td><td>${item.time}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('total').innerText = data.total.toFixed(2);
+}
+setInterval(refreshBasket,2000);
+async function checkout(){
+  const res = await fetch('/api/checkout',{method:'POST'});
+  const d = await res.json();
+  alert(d.status==='ok' ? 'Bill saved: '+d.file : 'Basket empty');
+  refreshBasket();
+}
+async function servo(action){
+  await fetch('/api/servo/'+action);
+}
+</script>
+</head>
+<body onload="refreshBasket()">
+<h1> SmartCart Live Dashboard</h1>
+<table>
+<thead><tr><th>#</th><th>Product</th><th>Price</th><th>UID</th><th>Time</th></tr></thead>
+<tbody id="basket-body"></tbody>
+</table>
+<h2>Total: ?<span id="total">0.00</span></h2>
+<div class="btns">
+<button onclick="servo('open')"> Open Servo</button>
+<button onclick="servo('close')"> Close Servo</button>
+<button onclick="checkout()">Checkout</button>
+</div>
+</body>
+</html>
